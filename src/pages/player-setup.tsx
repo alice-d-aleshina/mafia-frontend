@@ -93,48 +93,48 @@ export default function Component() {
       console.log('Creating room with code:', roomCode);
 
       // Создаем комнату
-      const roomResponse = await api.post<RoomResponse>('/create/room/', {
-        room_id: roomCode
-      });
+      // const roomResponse = await api.post<RoomResponse>('/create/room/', {
+      //   room_id: roomCode
+      // });
 
-      console.log('Room created:', roomResponse.data);
+      // console.log('Room created:', roomResponse.data);
 
-      if (roomResponse.data.post) {
-        // Фильтруем только игроков с заполненными данными
-        const activePlayers = players.filter(p => p.nickname && p.number);
+      // if (roomResponse.data.post) {
+      //   // Фильтруем только игроков с заполненными данными
+      //   const activePlayers = players.filter(p => p.nickname && p.number);
         
-        console.log('Active players:', activePlayers);
+      //   console.log('Active players:', activePlayers);
 
-        // Создаем игроков по одному
-        for (const player of activePlayers) {
-          const playerData = {
-            username: player.nickname,
-            room_id: roomCode,
-            role: '',  // Пустая строка для civilian по умолчанию
-            password: '',
-            place: player.number ? parseInt(player.number) : 0
-          };
+      //   // Создаем игроков по одному
+      //   for (const player of activePlayers) {
+      //     const playerData = {
+      //       username: player.nickname,
+      //       room_id: roomCode,
+      //       role: '',  // Пустая строка для civilian по умолчанию
+      //       password: '',
+      //       place: player.number ? parseInt(player.number) : 0
+      //     };
 
-          console.log('Creating player with data:', playerData);
+      //     console.log('Creating player with data:', playerData);
 
-          await api.post<PlayerResponse>('/create/player/', playerData);
-        }
+      //     await api.post<PlayerResponse>('/create/player/', playerData);
+      //   }
 
-        // Создаем админа
-        const adminData = {
-          username: 'admin',
-          room_id: roomCode,
-          role: 'admin',
-          password: 'admin_password',
-          place: 0
-        };
+      //   // Создаем админа
+      //   const adminData = {
+      //     username: 'admin',
+      //     room_id: roomCode,
+      //     role: 'admin',
+      //     password: 'admin_password',
+      //     place: 0
+      //   };
 
-        console.log('Creating admin with data:', adminData);
-        await api.post<PlayerResponse>('/create/player/', adminData);
+      //   console.log('Creating admin with data:', adminData);
+      //   await api.post<PlayerResponse>('/create/player/', adminData);
 
         setRoomId(roomCode);
         router.push(`/mafia-game-first-night?roomId=${roomCode}`);
-      }
+      // }
     } catch (error) {
       console.error('Error details:', error);
       if (axios.isAxiosError(error)) {
