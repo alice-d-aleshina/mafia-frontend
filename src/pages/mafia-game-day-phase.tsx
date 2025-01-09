@@ -12,6 +12,7 @@ type Player = {
 
 export default function Component() {
   const { eliminatedPlayers, playerFouls, setPlayerFouls, shootPlayer } = useRoom();
+  const [mounted, setMounted] = useState(false);
   const [players, setPlayers] = useState<Player[]>(
     Array.from({ length: 10 }, (_, i) => ({ 
       id: i + 1, 
@@ -30,6 +31,10 @@ export default function Component() {
 
   const longPressTimers = useRef<{ [key: number]: NodeJS.Timeout | null }>({})
   const isLongPress = useRef<{ [key: number]: boolean }>({})
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -150,6 +155,16 @@ export default function Component() {
     setIsRunning(true);
   };
 
+  const handleSkipVoting = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const roomId = searchParams.get('roomId');
+    if (roomId) {
+      router.push(`/mafia-game-night?roomId=${roomId}`);
+    } else {
+      console.error('Room ID is missing');
+    }
+  }
+
   const buttonOrder = [5, 6, 4, 7, 3, 8, 2, 9, 1, 10];
 
   return (
@@ -161,7 +176,6 @@ export default function Component() {
       <div className="w-full max-w-md mx-auto p-4 bg-white shadow-lg relative">
         <header className="flex flex-col items-center justify-center mb-6">
           <div className="text-xl font-bold">ДЕНЬ</div>
-          <div className="text-lg">Речь игрока {restartCount}</div>
           <div className="flex items-center space-x-4">
             <div
               className="text-4xl font-mono cursor-pointer border border-gray-400 rounded-lg p-4"
@@ -196,7 +210,7 @@ export default function Component() {
         <div className="grid grid-cols-2 gap-8 mb-8">
           {buttonOrder.map(id => {
             const player = players.find(p => p.id === id)!;
-            const isEliminated = eliminatedPlayers.includes(id) || id === shootPlayer;
+            const isEliminated = mounted && (eliminatedPlayers.includes(id) || id === shootPlayer);
             return (
               <Button
                 key={player.id}
@@ -219,7 +233,7 @@ export default function Component() {
                   e.preventDefault();
                   handleButtonRelease(player.id);
                 }}
-                disabled={isEliminated}
+                disabled={mounted && (eliminatedPlayers.includes(id) || id === shootPlayer)}
               >
                 <div className="absolute top-0 right-0 flex">
                   {[...Array(player.violated)].map((_, index) => (
@@ -235,13 +249,18 @@ export default function Component() {
         <div className="flex space-x-4 mt-6">
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-6"
-            onClick={handleGameEnd}
+            onClick={handleSkipVoting}
           >
-            Конец Игры
+            Пропуск голосования
           </Button>
           <Button
-            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-6"
+            className={`flex-1 ${
+              clickedNumbers.length > 0 
+                ? 'bg-gray-600 hover:bg-gray-700' 
+                : 'bg-gray-400 cursor-not-allowed'
+            } text-white font-semibold py-6`}
             onClick={handlePhaseTransition}
+            disabled={clickedNumbers.length === 0}
           >
             Голосование
           </Button>

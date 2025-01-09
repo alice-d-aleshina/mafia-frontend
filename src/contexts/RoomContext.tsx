@@ -1,4 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface GameState {
+  mafiaSelected: number[];
+  donSelected: number | null;
+  sheriffSelected: number | null;
+  eliminatedPlayers: number[];
+  shootPlayer: number | null;
+  playerFouls: { [key: number]: number };
+  mafiaPlayers: number[];
+}
 
 interface RoomContextType {
   roomId: string | null;
@@ -22,46 +32,137 @@ interface RoomContextType {
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
 
-export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [mafiaSelected, setMafiaSelected] = useState<number[]>([]);
-  const [donSelected, setDonSelected] = useState<number | null>(null);
-  const [sheriffSelected, setSheriffSelected] = useState<number | null>(null);
-  
-  const [eliminatedPlayers, setEliminatedPlayers] = useState<number[]>([]);
+const getInitialState = (roomId: string | null): GameState => {
+  if (!roomId) {
+    return {
+      mafiaSelected: [],
+      donSelected: null,
+      sheriffSelected: null,
+      eliminatedPlayers: [],
+      shootPlayer: null,
+      playerFouls: {},
+      mafiaPlayers: [],
+    };
+  }
 
-  const [shootPlayer, setShootPlayer] = useState<number | null>(null);
-  const [playerFouls, setPlayerFouls] = useState<{ [key: number]: number }>({});
-  const [mafiaPlayers, setMafiaPlayers] = useState<number[]>([]);
+  const savedState = sessionStorage.getItem(`gameState_${roomId}`);
+  if (savedState) {
+    return JSON.parse(savedState);
+  }
+
+  return {
+    mafiaSelected: [],
+    donSelected: null,
+    sheriffSelected: null,
+    eliminatedPlayers: [],
+    shootPlayer: null,
+    playerFouls: {},
+    mafiaPlayers: [],
+  };
+};
+
+export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [roomId, setRoomId] = useState<string | null>(() => {
+    // Try to get roomId from URL on initial load
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      return searchParams.get('roomId');
+    }
+    return null;
+  });
+
+  const [gameState, setGameState] = useState<GameState>(() => {
+    // Initialize state from session storage if available
+    if (typeof window !== 'undefined' && roomId) {
+      const savedState = sessionStorage.getItem(`gameState_${roomId}`);
+      if (savedState) {
+        return JSON.parse(savedState);
+      }
+    }
+    return getInitialState(null);
+  });
+
+  // Update roomId when URL changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlRoomId = searchParams.get('roomId');
+      if (urlRoomId && urlRoomId !== roomId) {
+        setRoomId(urlRoomId);
+      }
+    }
+  }, []);
+
+  // Load state from sessionStorage when roomId changes
+  useEffect(() => {
+    if (roomId) {
+      const savedState = sessionStorage.getItem(`gameState_${roomId}`);
+      if (savedState) {
+        setGameState(JSON.parse(savedState));
+      }
+    }
+  }, [roomId]);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (roomId) {
+      sessionStorage.setItem(`gameState_${roomId}`, JSON.stringify(gameState));
+    }
+  }, [gameState, roomId]);
+
+  const setMafiaSelected = (mafia: number[]) => {
+    setGameState(prev => ({ ...prev, mafiaSelected: mafia }));
+  };
+
+  const setDonSelected = (don: number | null) => {
+    setGameState(prev => ({ ...prev, donSelected: don }));
+  };
+
+  const setSheriffSelected = (sheriff: number | null) => {
+    setGameState(prev => ({ ...prev, sheriffSelected: sheriff }));
+  };
+
+  const setEliminatedPlayers = (players: number[]) => {
+    setGameState(prev => ({ ...prev, eliminatedPlayers: players }));
+  };
+
+  const setShootPlayer = (player: number | null) => {
+    setGameState(prev => ({ ...prev, shootPlayer: player }));
+  };
+
+  const setPlayerFouls = (fouls: { [key: number]: number }) => {
+    setGameState(prev => ({ ...prev, playerFouls: fouls }));
+  };
+
+  const setMafiaPlayers = (players: number[]) => {
+    setGameState(prev => ({ ...prev, mafiaPlayers: players }));
+  };
 
   const resetGame = () => {
-    setEliminatedPlayers([]);
-    setMafiaSelected([]);
-    setDonSelected(null);
-    setSheriffSelected(null);
-    setShootPlayer(null);
-    setPlayerFouls({});
-    setMafiaPlayers([]);
+    if (roomId) {
+      sessionStorage.removeItem(`gameState_${roomId}`);
+      setGameState(getInitialState(null));
+    }
   };
 
   return (
-    <RoomContext.Provider value={{ 
-      roomId, 
-      setRoomId, 
-      mafiaSelected, 
-      setMafiaSelected, 
-      donSelected, 
-      setDonSelected, 
-      sheriffSelected, 
-      setSheriffSelected, 
-      eliminatedPlayers, 
+    <RoomContext.Provider value={{
+      roomId,
+      setRoomId,
+      mafiaSelected: gameState.mafiaSelected,
+      setMafiaSelected,
+      donSelected: gameState.donSelected,
+      setDonSelected,
+      sheriffSelected: gameState.sheriffSelected,
+      setSheriffSelected,
+      eliminatedPlayers: gameState.eliminatedPlayers,
       setEliminatedPlayers,
-      shootPlayer, 
-      setShootPlayer, 
-      playerFouls, 
+      shootPlayer: gameState.shootPlayer,
+      setShootPlayer,
+      playerFouls: gameState.playerFouls,
       setPlayerFouls,
       resetGame,
-      mafiaPlayers,
+      mafiaPlayers: gameState.mafiaPlayers,
       setMafiaPlayers,
     }}>
       {children}

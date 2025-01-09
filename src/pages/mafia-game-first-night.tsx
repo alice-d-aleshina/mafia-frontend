@@ -31,6 +31,18 @@ export default function Component() {
     console.log('Current roomId:', roomId)
   }, [roomId])
 
+  // Reset function to clear selected roles
+  const resetRoles = () => {
+    setMafiaSelected([]);
+    setDonSelected(null);
+    setSheriffSelected(null);
+  };
+
+  // Call resetRoles when the component mounts
+  useEffect(() => {
+    resetRoles();
+  }, []);
+
   const handleMafiaClick = (num: number) => {
     if (donSelected === num || sheriffSelected === num) {
       return;
@@ -109,7 +121,7 @@ export default function Component() {
                 mafiaSelected.includes(i + 1)
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-700 text-gray-300'
-              } hover:bg-gray-600`}
+              }`}
               onClick={() => handleMafiaClick(i + 1)}
             >
               {i + 1}
@@ -130,7 +142,7 @@ export default function Component() {
                 donSelected === i + 1
                   ? 'bg-gray-900 text-white'
                   : 'bg-gray-700 text-gray-300'
-              } hover:bg-gray-600`}
+              }`}
               onClick={() => handleDonClick(i + 1)}
             >
               {i + 1}
@@ -151,7 +163,7 @@ export default function Component() {
                 sheriffSelected === i + 1
                   ? 'bg-red-600 text-white'
                   : 'bg-gray-700 text-gray-300'
-              } hover:bg-gray-600`}
+              }`}
               onClick={() => handleSheriffClick(i + 1)}
             >
               {i + 1}

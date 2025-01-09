@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
 import { useRoom } from '@/contexts/RoomContext'
@@ -10,7 +10,12 @@ export default function NightShootComponent() {
   const { roomId, sheriffSelected, eliminatedPlayers } = useRoom()
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null)
   const [mafiaStatus, setMafiaStatus] = useState<string | null>(null)
-  const [isSkipped, setIsSkipped] = useState<boolean>(false);
+  const [isSkipped, setIsSkipped] = useState<boolean>(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleShootClick = (num: number) => {
     setSelectedPlayer(num);
@@ -74,14 +79,14 @@ export default function NightShootComponent() {
                   <Button
                     variant="outline"
                     className={`w-full h-12 text-lg font-medium relative ${
-                      isEliminated 
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      mounted && isEliminated 
+                        ? 'bg-[#4A4458] text-[#A5A5A5] cursor-not-allowed' 
                         : selectedPlayer === num 
                           ? 'bg-red-500 text-white' 
                           : 'bg-gray-200 text-gray-500'
                     }`}
                     onClick={() => !isEliminated && handleShootClick(num)}
-                    disabled={isEliminated}
+                    disabled={mounted ? isEliminated : false}
                   >
                     {num}
                   </Button>
@@ -96,7 +101,7 @@ export default function NightShootComponent() {
               className="w-48 h-16 bg-pink-200 hover:bg-pink-300 text-gray-900 rounded-lg"
               onClick={handleConfirmShoot}
             >
-              Проверка Шерифа
+              К проверке Шерифа
             </Button>
           </div>
         </div>

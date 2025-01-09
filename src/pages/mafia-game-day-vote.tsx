@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { 
@@ -18,20 +20,38 @@ export default function VotingScreen() {
   const [voteCount, setVoteCount] = useState<{ [key: number]: number }>({})
   const [isVotingComplete, setIsVotingComplete] = useState(false)
   const [showButtons, setShowButtons] = useState(false)
+  const [eliminatedPlayer, setEliminatedPlayer] = useState<number | null>(null)
   const candidateRefs = useRef<(HTMLButtonElement | null)[]>([])
   const { roomId: contextRoomId, eliminatedPlayers, setEliminatedPlayers, shootPlayer, mafiaPlayers } = useRoom()
+  const [isLoading, setIsLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Parse candidates and roomId from URL
-    const searchParams = new URLSearchParams(window.location.search)
-    const candidatesParam = searchParams.get('candidates')
-    const roomIdParam = searchParams.get('roomId')
-    const parsedCandidates = candidatesParam ? candidatesParam.split(',').map(Number) : []
-    
-    setCandidates(parsedCandidates)
-    setRoomId(roomIdParam)
-    setSelectedCandidate(parsedCandidates[0] || null) // Set the first candidate as selected
+    const init = async () => {
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search)
+        const candidatesParam = searchParams.get('candidates')
+        const roomIdParam = searchParams.get('roomId')
+        const parsedCandidates = candidatesParam ? candidatesParam.split(',').map(Number) : []
+        
+        setCandidates(parsedCandidates)
+        setRoomId(roomIdParam)
+        setSelectedCandidate(parsedCandidates[0] || null)
+        setMounted(true)
+        setIsLoading(false)
+      }
+    }
+    init()
   }, [])
+
+  useEffect(() => {
+    if (mounted) {
+      const updatedCandidates = candidates.filter(num => 
+        !eliminatedPlayers.includes(num) && num !== shootPlayer
+      )
+      setCandidates(updatedCandidates)
+    }
+  }, [eliminatedPlayers, shootPlayer, mounted])
 
   useEffect(() => {
     setSelectedVoteCount(null)
@@ -76,8 +96,11 @@ export default function VotingScreen() {
 
   const getEliminatedPlayer = () => {
     const maxVotes = Math.max(...Object.values(voteCount));
+    if (maxVotes === 0) {
+      return 'По результатам голосования никто не покидает игру';
+    }
     const eliminatedPlayer = Object.keys(voteCount).find(key => voteCount[+key] === maxVotes);
-    return eliminatedPlayer ? `Выбывает игрок ${eliminatedPlayer} с ${maxVotes} голосами` : '';
+    return eliminatedPlayer ? `Игрок ${eliminatedPlayer} покидает игру с ${maxVotes} голосами` : '';
   }
 
   const handleConfirm = () => {
@@ -88,37 +111,38 @@ export default function VotingScreen() {
 
   const handleVoteEnd = (updatedVoteCount: { [key: number]: number }) => {
     const maxVotes = Math.max(...Object.values(updatedVoteCount));
-    const currentEliminatedPlayers = Object.keys(updatedVoteCount).filter(key => updatedVoteCount[+key] === maxVotes);
     
-    // Создаем новый массив с убитыми игроками
+    // Если максимальное количество голосов 0, никто не выбывает
+    if (maxVotes === 0) {
+      setIsVotingComplete(true);
+      setShowButtons(false);
+      return;
+    }
+
+    const currentEliminatedPlayers = Object.keys(updatedVoteCount)
+      .filter(key => updatedVoteCount[+key] === maxVotes);
+    
     const newEliminatedPlayers = currentEliminatedPlayers.map(Number);
 
     if (newEliminatedPlayers.length === 1) {
       const newEliminatedPlayer = Number(newEliminatedPlayers[0]);
+      setEliminatedPlayer(newEliminatedPlayer);
       if (shootPlayer !== null)
         setEliminatedPlayers([...eliminatedPlayers, shootPlayer, newEliminatedPlayer]);
       else 
         setEliminatedPlayers([...eliminatedPlayers, newEliminatedPlayer]);
       setShowButtons(false);
 
-      // Check game end conditions after updating eliminatedPlayers
-      const { isGameOver, mafiaWin } = checkGameEnd(eliminatedPlayers, mafiaPlayers, shootPlayer);
+      const { isGameOver, mafiaWin } = checkGameEnd([...eliminatedPlayers, newEliminatedPlayer], mafiaPlayers, shootPlayer);
       if (isGameOver) {
         router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}`);
         return;
       }
-
-      // Continue with normal game flow
-      router.push(`/mafia-game-night?roomId=${roomId}`);
-
     } else if (newEliminatedPlayers.length > 1) {
       setShowButtons(true);
-      setCandidates(newEliminatedPlayers); // Обновляем кандидатов
+      setCandidates(newEliminatedPlayers);
       setIsVotingComplete(false);
     }
-
-    console.log('Vote Count:', newEliminatedPlayers);
-    console.log('Max Votes:', maxVotes);
   }
 
   const handlePopil = () => {
@@ -126,11 +150,11 @@ export default function VotingScreen() {
   }
 
   const handleEndVoting = () => {
-    // Никто не умирает
-    // if (selectedCandidate) {
-    //   setEliminatedPlayers([...eliminatedPlayers, selectedCandidate]);
-    // }
     router.push(`/mafia-game-night?roomId=${roomId}`);
+  }
+
+  if (isLoading || !mounted) {
+    return <div className="flex flex-col min-h-screen bg-gray-100" />
   }
 
   return (
@@ -141,31 +165,39 @@ export default function VotingScreen() {
         <div className="mb-6 overflow-x-auto">
           <Carousel className="flex">
             <CarouselContent>
-              {candidates.map((candidate, index) => (
-                <CarouselItem key={candidate} className="carousel-item basis-1/4 mb-4">
-                  <div className="flex flex-col items-center">
-                    <Button
-                      ref={el => { candidateRefs.current[index] = el; }}
-                      variant="outline"
-                      className={`w-full h-16 text-xl font-medium border-2 ${
-                        selectedCandidate === candidate ? 'bg-gray-200' : 'hover:bg-gray-100'
-                      }`}
-                      onClick={() => setSelectedCandidate(candidate)}
-                    >
-                      {candidate}
-                    </Button>
-                    <div className="mt-2 text-sm">
-                      Голосов: {voteCount[candidate] || 0}
+              {candidates.map((candidate, index) => {
+                const isEliminated = eliminatedPlayers?.includes(candidate) || shootPlayer === candidate;
+                return (
+                  <CarouselItem key={candidate} className="carousel-item basis-1/4 mb-4">
+                    <div className="flex flex-col items-center">
+                      <Button
+                        ref={el => { candidateRefs.current[index] = el; }}
+                        variant="outline"
+                        className={`w-full h-16 text-xl font-medium border-2 ${
+                          isEliminated
+                            ? 'bg-[#4A4458] text-[#A5A5A5] cursor-not-allowed'
+                            : selectedCandidate === candidate
+                              ? 'bg-gray-200'
+                              : 'hover:bg-gray-100'
+                        }`}
+                        onClick={() => !isEliminated && setSelectedCandidate(candidate)}
+                        disabled={isEliminated}
+                      >
+                        {candidate}
+                      </Button>
+                      <div className="mt-2 text-sm">
+                        Голосов: {voteCount[candidate] || 0}
+                      </div>
                     </div>
-                  </div>
-                </CarouselItem>
-              ))}
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
           </Carousel>
         </div>
 
         <div className="text-sm text-gray-600 mb-4">
-          количество голосов
+          {isVotingComplete ? null : `Количество голосов`}
         </div>
 
         {isVotingComplete ? (
@@ -175,7 +207,7 @@ export default function VotingScreen() {
               className="mt-4 w-full py-2 text-lg font-medium bg-gray-800 hover:bg-gray-700 text-white"
               onClick={handleConfirm}
             >
-              Подтвердить
+              Ночь
             </Button>
           </div>
         ) : (

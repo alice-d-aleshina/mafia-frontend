@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
 import { useRoom } from '@/contexts/RoomContext'
@@ -11,6 +11,11 @@ export default function NightShootComponent() {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null)
   const [mafiaStatus, setMafiaStatus] = useState<string | null>(null)
   const [isSkipped, setIsSkipped] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleShootClick = (num: number) => {
     setSelectedPlayer(num);
@@ -74,8 +79,8 @@ export default function NightShootComponent() {
                   <Button
                     variant="outline"
                     className={`w-full h-12 text-lg font-medium relative ${
-                      isEliminated 
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      mounted && isEliminated 
+                        ? 'bg-[#4A4458] text-[#A5A5A5] cursor-not-allowed' 
                         : selectedPlayer === num 
                           ? 'bg-red-500 text-white' 
                           : 'bg-gray-200 text-gray-500'

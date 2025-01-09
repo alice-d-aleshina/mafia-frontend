@@ -87,54 +87,24 @@ export default function Component() {
     setIsLoading(true);
 
     try {
-      // Генерируем код комнаты
       const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
       
-      console.log('Creating room with code:', roomCode);
+      // Initialize the game state for this room
+      const initialGameState = {
+        mafiaSelected: [],
+        donSelected: null,
+        sheriffSelected: null,
+        eliminatedPlayers: [],
+        shootPlayer: null,
+        playerFouls: {},
+        mafiaPlayers: []
+      };
 
-      // Создаем комнату
-      // const roomResponse = await api.post<RoomResponse>('/create/room/', {
-      //   room_id: roomCode
-      // });
-
-      // console.log('Room created:', roomResponse.data);
-
-      // if (roomResponse.data.post) {
-      //   // Фильтруем только игроков с заполненными данными
-      //   const activePlayers = players.filter(p => p.nickname && p.number);
-        
-      //   console.log('Active players:', activePlayers);
-
-      //   // Создаем игроков по одному
-      //   for (const player of activePlayers) {
-      //     const playerData = {
-      //       username: player.nickname,
-      //       room_id: roomCode,
-      //       role: '',  // Пустая строка для civilian по умолчанию
-      //       password: '',
-      //       place: player.number ? parseInt(player.number) : 0
-      //     };
-
-      //     console.log('Creating player with data:', playerData);
-
-      //     await api.post<PlayerResponse>('/create/player/', playerData);
-      //   }
-
-      //   // Создаем админа
-      //   const adminData = {
-      //     username: 'admin',
-      //     room_id: roomCode,
-      //     role: 'admin',
-      //     password: 'admin_password',
-      //     place: 0
-      //   };
-
-      //   console.log('Creating admin with data:', adminData);
-      //   await api.post<PlayerResponse>('/create/player/', adminData);
-
-        setRoomId(roomCode);
-        router.push(`/mafia-game-first-night?roomId=${roomCode}`);
-      // }
+      // Save initial state to session storage
+      sessionStorage.setItem(`gameState_${roomCode}`, JSON.stringify(initialGameState));
+      
+      setRoomId(roomCode);
+      router.push(`/mafia-game-first-night?roomId=${roomCode}`);
     } catch (error) {
       console.error('Error details:', error);
       if (axios.isAxiosError(error)) {
@@ -237,8 +207,18 @@ export default function Component() {
               <Input 
                 value={player.nickname} 
                 onChange={(e) => handleNicknameChange(player.id, e.target.value)} 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && index < players.length - 1) {
+                    // Переход к следующему игроку
+                    const nextInput = document.querySelector(`input[data-index="${index + 1}"]`) as HTMLInputElement;
+                    if (nextInput) {
+                      nextInput.focus();
+                    }
+                  }
+                }}
                 placeholder="Введите участника" 
                 className="flex-1 bg-transparent border-none placeholder:text-white/50" 
+                data-index={index} // Добавляем атрибут для идентификации индекса
               /> 
             </div> 
           ))} 
