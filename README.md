@@ -1,9 +1,11 @@
 This is a React Native cross-platform Web Application for Mafia game hosts. Supports only Russian language.
 
 ### Main features
-- Full coverage of the game (including extra votings)
+- Full coverage of the game (including roles designation, kills, player checks, votings, extra votings on draws)
+- Saving game events to a database
 - Intuitive UI
 - Cross-platform **MOBILE** version
+- *Player rating (TBA)*
 
 ## Getting Started
 
