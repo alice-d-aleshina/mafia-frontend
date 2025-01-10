@@ -16,7 +16,7 @@ export default function VotingScreen() {
   const [candidates, setCandidates] = useState<number[]>([])
   const [roomId, setRoomId] = useState<string | null>(null)
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null)
-  const [selectedVoteCount, setSelectedVoteCount] = useState<number | null>(null)
+  const [selectedVoteCount, setSelectedVoteCount] = useState<number>(0)
   const [voteCount, setVoteCount] = useState<{ [key: number]: number }>({})
   const [isVotingComplete, setIsVotingComplete] = useState(false)
   const [showButtons, setShowButtons] = useState(false)
@@ -25,6 +25,10 @@ export default function VotingScreen() {
   const { roomId: contextRoomId, eliminatedPlayers, setEliminatedPlayers, shootPlayer, mafiaPlayers } = useRoom()
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [nightTime, setNightTime] = useState('01:00');
+  const [nightSeconds, setNightSeconds] = useState(60);
+  const [isNightRunning, setIsNightRunning] = useState(false);
+  const [remainingVotes, setRemainingVotes] = useState<number>(0);
 
   useEffect(() => {
     const init = async () => {
@@ -34,6 +38,10 @@ export default function VotingScreen() {
         const roomIdParam = searchParams.get('roomId')
         const parsedCandidates = candidatesParam ? candidatesParam.split(',').map(Number) : []
         
+        const totalPlayers = 10; // Assuming 10 players, adjust if needed
+        const initialRemainingVotes = totalPlayers - eliminatedPlayers.length - (shootPlayer ? 1 : 0);
+        setRemainingVotes(initialRemainingVotes);
+        
         setCandidates(parsedCandidates)
         setRoomId(roomIdParam)
         setSelectedCandidate(parsedCandidates[0] || null)
@@ -42,7 +50,7 @@ export default function VotingScreen() {
       }
     }
     init()
-  }, [])
+  }, [eliminatedPlayers, shootPlayer])
 
   useEffect(() => {
     if (mounted) {
@@ -54,7 +62,7 @@ export default function VotingScreen() {
   }, [eliminatedPlayers, shootPlayer, mounted])
 
   useEffect(() => {
-    setSelectedVoteCount(null)
+    setSelectedVoteCount(0)
   }, [selectedCandidate])
 
   useEffect(() => {
@@ -64,6 +72,32 @@ export default function VotingScreen() {
       currentCandidateRef.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
   }, [selectedCandidate])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isNightRunning && nightSeconds > 0) {
+      interval = setInterval(() => {
+        setNightSeconds(prevSeconds => {
+          const newSeconds = prevSeconds - 1;
+
+          if (newSeconds === 0) {
+            setIsNightRunning(false);
+            // Handle what happens when the timer ends, if needed
+          }
+
+          const minutes = Math.floor(newSeconds / 60);
+          const remainingSeconds = newSeconds % 60;
+          setNightTime(`${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`);
+          return newSeconds;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isNightRunning, nightSeconds]);
 
   const handleVote = () => {
     if (selectedVoteCount !== null && selectedCandidate !== null) {
@@ -87,10 +121,16 @@ export default function VotingScreen() {
             return newVoteCount;
         });
 
+        // Update remaining votes
+        setRemainingVotes(prev => prev - selectedVoteCount);
+
         // Move to the next candidate
         const currentIndex = candidates.indexOf(selectedCandidate);
         const nextIndex = (currentIndex + 1) % candidates.length;
         setSelectedCandidate(candidates[nextIndex]);
+
+        // Reset selectedVoteCount to 0 after voting
+        setSelectedVoteCount(0); // Make the "0" button active by default
     }
   }
 
@@ -104,9 +144,16 @@ export default function VotingScreen() {
   }
 
   const handleConfirm = () => {
+    router.push(`/mafia-game-night?roomId=${roomId}`);
     setIsVotingComplete(false);
     setVoteCount({});
-    router.push(`/mafia-game-night?roomId=${roomId}`);
+    resetTimer(); // Reset timer when confirming
+  }
+
+  const resetTimer = () => {
+    setNightSeconds(60); // Reset timer
+    setNightTime('01:00'); // Reset display time
+    setIsNightRunning(true); // Start timer
   }
 
   const handleVoteEnd = (updatedVoteCount: { [key: number]: number }) => {
@@ -119,8 +166,8 @@ export default function VotingScreen() {
       return;
     }
 
-    const currentEliminatedPlayers = Object.keys(updatedVoteCount)
-      .filter(key => updatedVoteCount[+key] === maxVotes);
+    // Get candidates with the maximum votes while preserving their original order
+    const currentEliminatedPlayers = candidates.filter(candidate => updatedVoteCount[candidate] === maxVotes);
     
     const newEliminatedPlayers = currentEliminatedPlayers.map(Number);
 
@@ -151,6 +198,24 @@ export default function VotingScreen() {
 
   const handleEndVoting = () => {
     router.push(`/mafia-game-night?roomId=${roomId}`);
+  }
+
+  const handleAllPlayersElimination = () => {
+    if (candidates.length > 0) {
+      if (shootPlayer !== null) {
+        setEliminatedPlayers([...eliminatedPlayers, shootPlayer, ...candidates]);
+      } else {
+        setEliminatedPlayers([...eliminatedPlayers, ...candidates]);
+      }
+
+      const { isGameOver, mafiaWin } = checkGameEnd([...eliminatedPlayers, ...candidates], mafiaPlayers, shootPlayer);
+      if (isGameOver) {
+        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}`);
+        return;
+      }
+
+      router.push(`/mafia-game-night?roomId=${roomId}`);
+    }
   }
 
   if (isLoading || !mounted) {
@@ -203,6 +268,36 @@ export default function VotingScreen() {
         {isVotingComplete ? (
           <div className="text-center">
             <h2 className="text-xl font-bold">{getEliminatedPlayer()}</h2>
+            <div className="mt-4 text-lg">Последнее слово</div>
+            <div className="flex items-center justify-center space-x-4 mt-2">
+              <div
+                className="text-4xl font-mono cursor-pointer border border-gray-400 rounded-lg p-4"
+                onClick={() => setIsNightRunning(prev => !prev)}
+              >
+                {nightTime}
+              </div>
+              <Button
+                className="bg-white text-gray-900 rounded-lg p-2 flex items-center justify-center hover:bg-gray-200"
+                onClick={resetTimer}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                  <path d="M22 20v-5h-5" />
+                </svg>
+              </Button>
+            </div>
             <Button 
               className="mt-4 w-full py-2 text-lg font-medium bg-gray-800 hover:bg-gray-700 text-white"
               onClick={handleConfirm}
@@ -224,11 +319,7 @@ export default function VotingScreen() {
                 0
               </Button>
             </div>
-            {[
-              1, 2, 3, 
-              4, 5, 6, 
-              7, 8, 9
-            ].map((num) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <Button
                 key={num}
                 variant="outline"
@@ -236,6 +327,7 @@ export default function VotingScreen() {
                   selectedVoteCount === num ? 'bg-gray-300' : 'hover:bg-gray-100'
                 }`}
                 onClick={() => setSelectedVoteCount(num)}
+                disabled={num > remainingVotes}
               >
                 {num}
               </Button>
@@ -248,6 +340,7 @@ export default function VotingScreen() {
                   selectedVoteCount === 10 ? 'bg-gray-300' : 'hover:bg-gray-100'
                 }`}
                 onClick={() => setSelectedVoteCount(10)}
+                disabled={10 > remainingVotes}
               >
                 10
               </Button>
@@ -267,18 +360,26 @@ export default function VotingScreen() {
 
         {/* Render buttons if there are multiple eliminated players */}
         {showButtons && (
-          <div className="flex space-x-4 mt-6">
+          <div className="space-y-4 mt-6">
+            <div className="flex space-x-4">
+              <Button
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6"
+                onClick={handlePopil}
+              >
+                Попил
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-6"
+                onClick={handleEndVoting}
+              >
+                Голосование не состоялось
+              </Button>
+            </div>
             <Button
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6"
-              onClick={handlePopil}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-6"
+              onClick={handleAllPlayersElimination}
             >
-              Попил
-            </Button>
-            <Button
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-6"
-              onClick={handleEndVoting}
-            >
-              Голосование не состоялось
+              Все кандидаты покидают игру
             </Button>
           </div>
         )}

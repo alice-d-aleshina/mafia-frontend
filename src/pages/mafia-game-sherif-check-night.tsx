@@ -7,7 +7,7 @@ import { useRoom } from '@/contexts/RoomContext'
 
 export default function NightShootComponent() {
   const router = useRouter()
-  const { roomId, donSelected, eliminatedPlayers } = useRoom()
+  const { roomId, donSelected, eliminatedPlayers, setShootPlayer } = useRoom()
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null)
   const [mafiaStatus, setMafiaStatus] = useState<string | null>(null)
   const [isSkipped, setIsSkipped] = useState<boolean>(false);
@@ -25,12 +25,15 @@ export default function NightShootComponent() {
 
   const handleConfirmShoot = () => {
     if (isSkipped) {
-      router.push(`/mafia-game-day?roomId=${roomId}`); // Переход на страницу "День" с передачей roomId при пропуске
+      router.push(`/mafia-game-day?roomId=${roomId}`); // Redirect to the day phase if skipped
     } else if (selectedPlayer) {
-      console.log(`Checking player: ${selectedPlayer}`);
-      router.push(`/mafia-game-day?roomId=${roomId}`); // Переход на страницу "День" с передачей roomId
+      console.log(`Shooting player: ${selectedPlayer}`);
+      // Set the shootPlayer in the context
+      setShootPlayer(selectedPlayer);
+      // Redirect to the ShotDisplay component
+      router.push(`/mafia-game-shot-display?roomId=${roomId}`);
     } else {
-      console.error('No player selected for checking');
+      console.error('No player selected for shooting');
     }
   }
 
