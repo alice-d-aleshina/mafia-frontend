@@ -7,7 +7,7 @@ import { useRoom } from '@/contexts/RoomContext'
 
 export default function NightShootComponent() {
   const router = useRouter()
-  const { roomId, donSelected, eliminatedPlayers, setShootPlayer } = useRoom()
+  const { roomId, donSelected, mafiaPlayers, eliminatedPlayers, setShootPlayer, shootPlayer } = useRoom()
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null)
   const [mafiaStatus, setMafiaStatus] = useState<string | null>(null)
   const [isSkipped, setIsSkipped] = useState<boolean>(false);
@@ -19,21 +19,19 @@ export default function NightShootComponent() {
 
   const handleShootClick = (num: number) => {
     setSelectedPlayer(num);
-    const isDon = num === donSelected;
-    setMafiaStatus(isDon ? `Игрок ${num} Дон` : `Игрок ${num} не Дон`);
+    const isMafia = (num == donSelected) || mafiaPlayers.includes(num);
+    console.log(`Don player: ${donSelected}`);
+    setMafiaStatus(isMafia ? `Игрок ${num} Чёрный` : `Игрок ${num} Красный`);
   }
 
   const handleConfirmShoot = () => {
-    if (isSkipped) {
+    if (!shootPlayer) {
+      console.error('No player selected for shooting');
       router.push(`/mafia-game-day?roomId=${roomId}`); // Redirect to the day phase if skipped
-    } else if (selectedPlayer) {
-      console.log(`Shooting player: ${selectedPlayer}`);
-      // Set the shootPlayer in the context
-      setShootPlayer(selectedPlayer);
+    } else if (shootPlayer) {
+      console.log(`Shooting player: ${shootPlayer}`);
       // Redirect to the ShotDisplay component
       router.push(`/mafia-game-shot-display?roomId=${roomId}`);
-    } else {
-      console.error('No player selected for shooting');
     }
   }
 
@@ -53,7 +51,7 @@ export default function NightShootComponent() {
           <div></div>
         </header>
 
-        <h3 className="text-center text-lg font-bold mb-4">Просыпается Шериф и ищет Дона</h3>
+        <h3 className="text-center text-lg font-bold mb-4">Просыпается Шериф и ищет Мафию</h3>
 
         <div className="flex justify-center mb-4">
           <Button 

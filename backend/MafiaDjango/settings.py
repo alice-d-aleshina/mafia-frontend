@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mafia_db',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': '170203',
         'HOST': 'localhost',
         'PORT': '5432',
     }

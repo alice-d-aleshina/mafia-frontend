@@ -307,19 +307,7 @@ export default function VotingScreen() {
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="col-span-3 flex justify-center">
-              <Button
-                key={0}
-                variant="outline"
-                className={`h-16 w-full text-xl font-medium border-2 ${
-                  selectedVoteCount === 0 ? 'bg-gray-300' : 'hover:bg-gray-100'
-                }`}
-                onClick={() => setSelectedVoteCount(0)}
-              >
-                0
-              </Button>
-            </div>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
               <Button
                 key={num}
                 variant="outline"
@@ -332,19 +320,6 @@ export default function VotingScreen() {
                 {num}
               </Button>
             ))}
-            <div className="col-span-3 flex justify-center">
-              <Button
-                key={10}
-                variant="outline"
-                className={`h-16 w-24 text-xl font-medium border-2 ${
-                  selectedVoteCount === 10 ? 'bg-gray-300' : 'hover:bg-gray-100'
-                }`}
-                onClick={() => setSelectedVoteCount(10)}
-                disabled={10 > remainingVotes}
-              >
-                10
-              </Button>
-            </div>
           </div>
         )}
 

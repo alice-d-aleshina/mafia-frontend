@@ -44,7 +44,8 @@ export default function Component() {
         username: formData.username,
         password: formData.password,
         room_id: 'admin',
-        role: 'admin'
+        role: 'admin',
+        place: 1
       });
 
       console.log('Registration response:', response);
