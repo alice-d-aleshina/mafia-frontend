@@ -40,8 +40,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'mafia',
     'corsheaders',
-    'drf_spectacular'
+    'drf_spectacular',
+    'crispy_forms'
 ]
+
+CRISPY_TEMPLATE_PACK="bootstrap4"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -84,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mafia_db',
         'USER': 'postgres',
-        'PASSWORD': '170203',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -150,3 +153,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '2.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Settings for auth service
+AUTH_USER_MODEL = 'mafia.RoomAdmin'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

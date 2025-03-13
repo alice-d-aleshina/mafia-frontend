@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -227,6 +229,7 @@ class PlayerManage(APIView):
         }
     )
     def get(self, request, room_id):
+        room = get_object_or_404(Room, id=room_id)
         players = Player.objects.filter(room_id=room_id)
         serializer = PlayerSerializer(players, many=True)
         return Response(serializer.data)
@@ -259,6 +262,7 @@ class PlayerSettings(APIView):
         }
     )
     def put(self, request, room_id, seat, setting):
+
         if setting in Role.objects.values_list('role', flat=True):
             player = Player.objects.get(
                 room_id=room_id,
