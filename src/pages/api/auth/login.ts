@@ -17,7 +17,7 @@ export default async function handler(
     }
 
     // Преобразуем username в формат email
-    const pseudoEmail = `${username}@example.com`;
+    const pseudoEmail = `${username}@mail.ru`;
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: pseudoEmail, // Используем псевдо-email

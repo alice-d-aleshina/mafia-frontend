@@ -17,7 +17,7 @@ export default async function handler(
     }
 
     // Преобразуем username в формат email, добавляя фиктивный домен
-    const pseudoEmail = `${username}@example.com`;
+    const pseudoEmail = `${username}@mail.ru`;
 
     const { data, error } = await supabase.auth.signUp({
       email: pseudoEmail, // Используем псевдо-email
