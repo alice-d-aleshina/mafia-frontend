@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+from mafia.apiv3.views import login_user, register_user
 from mafia.auth_service import auth_requests
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('register/', auth_requests.register_request, name='register'),
-    path("login", auth_requests.login_request, name="login"),
+    path('register_user/', register_user, name='register'),
+    path("login", login_user, name="login"),
 
     path('api/', include('mafia.apiv3.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

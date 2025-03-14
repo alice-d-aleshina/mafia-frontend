@@ -40,12 +40,12 @@ export default function Component() {
 
     try {
       console.log('Sending registration request...');
-      const response = await api.post<PlayerResponse>('/create/player/', {
+      const response = await api.post<PlayerResponse>('/register_user/', {
         username: formData.username,
         password: formData.password,
-        room_id: 'admin',
-        role: 'admin',
-        place: 1
+        // room_id: 'admin',
+        // role: 'admin',
+        // place: 1
       });
 
       console.log('Registration response:', response);
