@@ -16,8 +16,11 @@ export default async function handler(
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
+    // Преобразуем username в формат email
+    const pseudoEmail = `${username}@example.com`;
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: username, // Supabase использует email для входа
+      email: pseudoEmail, // Используем псевдо-email
       password,
     });
 
@@ -39,10 +42,9 @@ export default async function handler(
     return res.status(200).json({
       post: {
         id: data.user.id,
-        username: username,
+        username: username, // Используем оригинальный username
         role: userData?.role || 'user',
         access_token: data.session.access_token,
-        // Другие данные пользователя
       }
     });
   } catch (error) {

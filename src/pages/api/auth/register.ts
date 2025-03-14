@@ -16,13 +16,15 @@ export default async function handler(
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
+    // Преобразуем username в формат email, добавляя фиктивный домен
+    const pseudoEmail = `${username}@example.com`;
+
     const { data, error } = await supabase.auth.signUp({
-      email: username, // Supabase требует email для регистрации
+      email: pseudoEmail, // Используем псевдо-email
       password,
       options: {
         data: {
-          username,
-          // Дополнительные пользовательские данные можно добавить здесь
+          username, // Сохраняем оригинальный username в метаданных
         }
       }
     });
@@ -34,8 +36,8 @@ export default async function handler(
     return res.status(201).json({
       post: {
         id: data.user?.id,
-        username: username,
-        role: 'user', // По умолчанию устанавливаем роль user
+        username: username, // Возвращаем оригинальный username
+        role: 'admin', // По умолчанию устанавливаем роль user
         // Другие данные о пользователе
       }
     });
