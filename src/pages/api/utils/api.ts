@@ -1,14 +1,15 @@
 import axios from 'axios';
 
+// Не добавляйте базовый URL автоматически, т.к. Next.js API routes 
+// относительны к текущему домену
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '', // URL вашего API (при деплое на Vercel)
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Интерцепторы для отладки (можно оставить)
+// Интерцепторы для отладки
 api.interceptors.request.use(
   config => {
     console.log('Request:', config);
