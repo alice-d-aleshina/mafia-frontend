@@ -11,7 +11,6 @@ import {
   SelectValue, 
 } from "@/components/ui/select" 
 import { useRouter } from 'next/navigation'
-import api from './api/utils/api';
 import { useRoom } from '@/contexts/RoomContext';
 import axios from 'axios';
 
@@ -125,36 +124,36 @@ export default function Component() {
     try {
       const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
       
-      const roomResponse = await api.post<RoomResponse>('/create/room/', {
-        room_id: roomCode
-      });
+      // const roomResponse = await api.post<RoomResponse>('/create/room/', {
+      //   room_id: roomCode
+      // });
 
-      if (roomResponse.data.post) {
+      // if (roomResponse.data.post) {
         const activePlayers = players.filter(p => p.nickname && p.number);
         
         // Создаем игроков с place
         for (const player of activePlayers) {
-          await api.post<PlayerResponse>('/create/player/', {
-            username: player.nickname,
-            room_id: roomCode,
-            role: 'civilian',
-            password: '',
-            place: player.number // Используем номер как place
-          });
+          // await api.post<PlayerResponse>('/create/player/', {
+          //   username: player.nickname,
+          //   room_id: roomCode,
+          //   role: 'civilian',
+          //   password: '',
+          //   place: player.number // Используем номер как place
+          // });
         }
 
         // Создаем админа
-        await api.post<PlayerResponse>('/create/player/', {
-          username: 'admin',
-          room_id: roomCode,
-          role: 'admin',
-          password: 'admin_password',
-          place: 0
-        });
+        // await api.post<PlayerResponse>('/create/player/', {
+        //   username: 'admin',
+        //   room_id: roomCode,
+        //   role: 'admin',
+        //   password: 'admin_password',
+        //   place: 0
+        // });
 
         setRoomId(roomCode);
         router.push(`/game-code?roomId=${roomCode}`);
-      }
+      // }
     } catch (error) {
       console.error('Failed to save game:', error);
       setError('Ошибка при сохранении игры. Попробуйте еще раз.');

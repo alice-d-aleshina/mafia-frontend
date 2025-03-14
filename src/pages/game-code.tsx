@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { MenuIcon, UserCircle, Copy } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
-import api from '@/utils/api'
 import { useRoom } from '@/contexts/RoomContext';
 
 export default function Component() {
@@ -20,14 +19,14 @@ export default function Component() {
 
   useEffect(() => {
     const createRoom = async () => {
-      try {
-        const response = await api.post('/create/room/', {
-          room_id: gameCode
-        });
-        setRoomId(gameCode);
-      } catch (error) {
-        console.error('Failed to create room:', error);
-      }
+      // try {
+      //   const response = await api.post('/create/room/', {
+      //     room_id: gameCode
+      //   });
+      //   setRoomId(gameCode);
+      // } catch (error) {
+      //   console.error('Failed to create room:', error);
+      // }
     };
     
     if (gameCode) {

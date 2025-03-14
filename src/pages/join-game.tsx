@@ -2,7 +2,6 @@ import { MenuIcon, UserCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
-import api from '@/utils/api';
 import { useState } from 'react';
 import { useRoom } from '@/contexts/RoomContext';
 
@@ -13,17 +12,17 @@ export default function Component() {
   const [playerName, setPlayerName] = useState('');
 
   const handleJoinGame = async () => {
-    try {
-      await api.post('/create/player/', {
-        username: playerName,
-        room_id: gameCode,
-        role: 'civilian'
-      });
-      setRoomId(gameCode);
-      router.push('/mafia-game-night-phase');
-    } catch (error) {
-      console.error('Failed to join game:', error);
-    }
+    // try {
+    //   await api.post('/create/player/', {
+    //     username: playerName,
+    //     room_id: gameCode,
+    //     role: 'civilian'
+    //   });
+    //   setRoomId(gameCode);
+    //   router.push('/mafia-game-night-phase');
+    // } catch (error) {
+    //   console.error('Failed to join game:', error);
+    // }
   };
 
   return (

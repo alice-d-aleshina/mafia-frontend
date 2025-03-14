@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { useRouter, useSearchParams } from 'next/navigation'
-import api from '@/utils/api'
 import { useRoom } from '@/contexts/RoomContext'
 
 export default function Component() {
@@ -39,36 +38,36 @@ export default function Component() {
     }
   }
 
-  const handleKillAction = async (username: string) => {
-    try {
-      const response = await api.get('/check/boss/', {
-        data: {
-          username,
-          room_id: roomId
-        }
-      })
-      if (response.data.is_mafia_boss) {
-        await api.put('/set/kill/', {
-          username,
-          room_id: roomId
-        })
-      }
-      // setKilledPlayer(username)
-    } catch (error) {
-      console.error('Failed to perform kill action:', error)
-    }
-  }
+  // const handleKillAction = async (username: string) => {
+  //   try {
+  //     const response = await api.get('/check/boss/', {
+  //       data: {
+  //         username,
+  //         room_id: roomId
+  //       }
+  //     })
+  //     if (response.data.is_mafia_boss) {
+  //       await api.put('/set/kill/', {
+  //         username,
+  //         room_id: roomId
+  //       })
+  //     }
+  //     // setKilledPlayer(username)
+  //   } catch (error) {
+  //     console.error('Failed to perform kill action:', error)
+  //   }
+  // }
 
-  const handleSheriffCheck = async (playerId: number) => {
-    try {
-      await api.post('/check/sheriff/', {
-        playerId
-      })
-      setSheriffCheck(playerId)
-    } catch (error) {
-      console.error('Failed to perform sheriff check:', error)
-    }
-  }
+  // const handleSheriffCheck = async (playerId: number) => {
+  //   try {
+  //     await api.post('/check/sheriff/', {
+  //       playerId
+  //     })
+  //     setSheriffCheck(playerId)
+  //   } catch (error) {
+  //     console.error('Failed to perform sheriff check:', error)
+  //   }
+  // }
 
   return (
     <div className="flex min-h-screen bg-[#1a1625] text-white">
