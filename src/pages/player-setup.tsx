@@ -11,7 +11,7 @@ import {
   SelectValue, 
 } from "@/components/ui/select" 
 import { useRouter } from 'next/navigation'
-import api from '@/utils/api';
+import api from './api/utils/api';
 import { useRoom } from '@/contexts/RoomContext';
 import axios from 'axios';
 

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import api from '@/utils/api'
+import { authService } from './api/utils/api';
 import axios from 'axios'
 
 interface PlayerResponse {
@@ -39,27 +39,17 @@ export default function Component() {
     setIsLoading(true);
 
     try {
-      console.log('Sending registration request...');
-      const response = await api.post<PlayerResponse>('/register_user/', {
-        username: formData.username,
-        password: formData.password,
-        // room_id: 'admin',
-        // role: 'admin',
-        // place: 1
-      });
-
-      console.log('Registration response:', response);
-
+      const response = await authService.register(formData.username, formData.password);
       if (response.data.post) {
         localStorage.setItem('username', response.data.post.username);
-        localStorage.setItem('userId', response.data.post.id.toString());
+        localStorage.setItem('userId', response.data.post.id);
         localStorage.setItem('role', response.data.post.role);
         
         router.push('/mafia-create-game');
       }
     } catch (error) {
-      console.error('Registration error details:', error);
-      
+      console.error('Registration error:', error);
+      // Обработка ошибок
       if (axios.isAxiosError(error)) {
         if (error.code === 'ERR_NETWORK') {
           setError('Ошибка соединения. Проверьте консоль разработчика.');
