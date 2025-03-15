@@ -15,21 +15,20 @@ export default function Component() {
   const [players, setPlayers] = useState<Player[]>(
     Array.from({ length: 10 }, (_, i) => ({ 
       id: i + 1, 
-      nominated: null, 
-      violated: playerFouls[i + 1] || 0,
-      clicked: false
+      clicked: false, 
+      violated: playerFouls[i + 1] || 0
     }))
-  )
-  const [clickedNumbers, setClickedNumbers] = useState<number[]>([])
-  const [time, setTime] = useState('01:00')
-  const [isRunning, setIsRunning] = useState(false)
-  const [seconds, setSeconds] = useState(60)
-  const [isFlashing, setIsFlashing] = useState(false)
-  const [restartCount, setRestartCount] = useState(0)
-  const router = useRouter()
+  );
+  const [clickedNumbers, setClickedNumbers] = useState<number[]>([]);
+  const [time, setTime] = useState('01:00');
+  const [isRunning, setIsRunning] = useState(false);
+  const [seconds, setSeconds] = useState(60);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [restartCount, setRestartCount] = useState(0);
+  const router = useRouter();
 
-  const longPressTimers = useRef<{ [key: number]: NodeJS.Timeout | null }>({})
-  const isLongPress = useRef<{ [key: number]: boolean }>({})
+  const longPressTimers = useRef<{ [key: number]: NodeJS.Timeout | null }>({});
+  const isLongPress = useRef<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     setMounted(true);
@@ -75,11 +74,18 @@ export default function Component() {
   const handleButtonPress = (playerId: number) => {
     if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
 
+    // Сбрасываем все таймеры и состояния длинного нажатия
+    Object.keys(longPressTimers.current).forEach(key => {
+      if (longPressTimers.current[Number(key)]) {
+        clearTimeout(longPressTimers.current[Number(key)]!);
+        longPressTimers.current[Number(key)] = null;
+      }
+    });
     Object.keys(isLongPress.current).forEach(key => {
       isLongPress.current[Number(key)] = false;
     });
-    isLongPress.current[playerId] = false;
-    
+
+    // Устанавливаем таймер для длинного нажатия
     longPressTimers.current[playerId] = setTimeout(() => {
       isLongPress.current[playerId] = true;
       const newViolated = ((playerFouls[playerId] || 0) + 1) % 4;
@@ -167,44 +173,12 @@ export default function Component() {
   const buttonOrder = [5, 6, 4, 7, 3, 8, 2, 9, 1, 10];
 
   return (
-    <div className="flex min-h-screen bg-gray-100 text-gray-900">
+    <div className="flex min-h-screen bg-[#1a1625] text-white">
       {isFlashing && (
         <div className="fixed inset-0 bg-red-500/50 pointer-events-none transition-opacity duration-300 z-50" />
       )}
 
-      <div className="w-full max-w-md mx-auto p-4 bg-white shadow-lg relative">
-        <header className="flex flex-col items-center justify-center mb-6">
-          <div className="text-xl font-bold">ДЕНЬ</div>
-          <div className="flex items-center space-x-4">
-            <div
-              className="text-4xl font-mono cursor-pointer border border-gray-400 rounded-lg p-4"
-              onClick={toggleTimer}
-            >
-              {time}
-            </div>
-            <Button
-              className="bg-white text-gray-900 rounded-lg p-2 flex items-center justify-center hover:bg-gray-200"
-              onClick={resetTimer}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M22 20v-5h-5" />
-              </svg>
-            </Button>
-          </div>
-        </header>
+      <div className="w-full max-w-md mx-auto p-4">
         <div className="text-lg font-bold mb-4">Кандидаты: {clickedNumbers.join(', ')}</div>
         <div className="grid grid-cols-2 gap-8 mb-8">
           {buttonOrder.map(id => {
@@ -268,4 +242,3 @@ export default function Component() {
     </div>
   )
 }
-
