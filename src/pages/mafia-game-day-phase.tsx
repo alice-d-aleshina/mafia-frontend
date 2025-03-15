@@ -72,31 +72,59 @@ export default function Component() {
     };
   }, [isRunning, seconds]);
 
-  const handleButtonPress = (id: number) => {
-    setPlayers(prevPlayers => {
-      return prevPlayers.map(player => {
-        if (player.id === id) {
-          return { ...player, clicked: true };
-        }
-        return player;
-      });
-    });
+  const handleButtonPress = (playerId: number) => {
+    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
 
-    if (!clickedNumbers.includes(id)) {
-      setClickedNumbers([...clickedNumbers, id]);
+    isLongPress.current[playerId] = false;
+    
+    longPressTimers.current[playerId] = setTimeout(() => {
+      isLongPress.current[playerId] = true;
+      setPlayers(prevPlayers => {
+        const newPlayers = prevPlayers.map(player => {
+          if (player.id === playerId) {
+            const newViolated = (player.violated + 1) % 4;
+            const newFouls = {
+              ...playerFouls,
+              [playerId]: newViolated
+            };
+            setPlayerFouls(newFouls);
+            return { ...player, violated: newViolated };
+          }
+          return player;
+        });
+        return newPlayers;
+      });
+    }, 500); // Время для определения долгого нажатия
+  }
+
+  const handleButtonRelease = (playerId: number) => {
+    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
+    
+    if (longPressTimers.current[playerId]) {
+      clearTimeout(longPressTimers.current[playerId]!);
+      longPressTimers.current[playerId] = null;
     }
-  };
 
-  const handleButtonRelease = (id: number) => {
-    setPlayers(prevPlayers => {
-      return prevPlayers.map(player => {
-        if (player.id === id) {
-          return { ...player, clicked: false };
+    if (!isLongPress.current[playerId]) {
+      // Обработка короткого нажатия - выставление на голосование
+      setPlayers(prevPlayers => {
+        const newPlayers = prevPlayers.map(player => 
+          player.id === playerId ? { ...player, clicked: !player.clicked } : player
+        );
+        
+        const clickedPlayer = newPlayers.find(p => p.id === playerId);
+        if (clickedPlayer?.clicked) {
+          setClickedNumbers(prev => [...prev, playerId]);
+        } else {
+          setClickedNumbers(prev => prev.filter(id => id !== playerId));
         }
-        return player;
+
+        return newPlayers;
       });
-    });
-  };
+    }
+    
+    isLongPress.current[playerId] = false;
+  }
 
   const handlePhaseTransition = () => {
     const searchParams = new URLSearchParams(window.location.search);
