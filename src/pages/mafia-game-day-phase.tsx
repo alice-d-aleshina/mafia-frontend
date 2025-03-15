@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
 import { useRoom } from '@/contexts/RoomContext'
 
-type Player = {
-  id: number
-  nominated: number | null
-  violated: number
-  clicked: boolean
+interface Player {
+  id: number;
+  clicked: boolean;
+  violated: number;
 }
 
 export default function Component() {
@@ -73,64 +72,31 @@ export default function Component() {
     };
   }, [isRunning, seconds]);
 
-  const handleButtonPress = (playerId: number) => {
-    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
-
-    isLongPress.current[playerId] = false;
-    
-    longPressTimers.current[playerId] = setTimeout(() => {
-      isLongPress.current[playerId] = true;
-      setPlayers(prevPlayers => {
-        const newPlayers = prevPlayers.map(player => {
-          if (player.id === playerId) {
-            const newViolated = (player.violated + 1) % 4;
-            const newFouls = {
-              ...playerFouls,
-              [playerId]: newViolated
-            };
-            setPlayerFouls(newFouls);
-            return { ...player, violated: newViolated };
-          }
-          return player;
-        });
-        return newPlayers;
-      });
-    }, 500)
-  }
-
-  const handleButtonRelease = (playerId: number) => {
-    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
-    
-    if (longPressTimers.current[playerId]) {
-      clearTimeout(longPressTimers.current[playerId]!);
-      longPressTimers.current[playerId] = null;
-    }
-
-    if (!isLongPress.current[playerId]) {
-      handleButtonClick(playerId);
-    }
-    
-    isLongPress.current[playerId] = false;
-  }
-
-  const handleButtonClick = (playerId: number) => {
-    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
-
+  const handleButtonPress = (id: number) => {
     setPlayers(prevPlayers => {
-      const newPlayers = prevPlayers.map(player => 
-        player.id === playerId ? { ...player, clicked: !player.clicked } : player
-      )
-      
-      const clickedPlayer = newPlayers.find(p => p.id === playerId)
-      if (clickedPlayer?.clicked) {
-        setClickedNumbers(prev => [...prev, playerId])
-      } else {
-        setClickedNumbers(prev => prev.filter(id => id !== playerId))
-      }
+      return prevPlayers.map(player => {
+        if (player.id === id) {
+          return { ...player, clicked: true };
+        }
+        return player;
+      });
+    });
 
-      return newPlayers
-    })
-  }
+    if (!clickedNumbers.includes(id)) {
+      setClickedNumbers([...clickedNumbers, id]);
+    }
+  };
+
+  const handleButtonRelease = (id: number) => {
+    setPlayers(prevPlayers => {
+      return prevPlayers.map(player => {
+        if (player.id === id) {
+          return { ...player, clicked: false };
+        }
+        return player;
+      });
+    });
+  };
 
   const handlePhaseTransition = () => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -168,14 +134,6 @@ export default function Component() {
   }
 
   const buttonOrder = [5, 6, 4, 7, 3, 8, 2, 9, 1, 10];
-
-  const handlePlayerClick = useCallback((index: number) => {
-    if (clickedNumbers.includes(index)) {
-      setClickedNumbers(clickedNumbers.filter(i => i !== index));
-    } else {
-      setClickedNumbers([...clickedNumbers, index]);
-    }
-  }, [clickedNumbers]);
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-900">
@@ -237,7 +195,7 @@ export default function Component() {
                 onMouseLeave={() => handleButtonRelease(player.id)}
                 onTouchStart={(e) => {
                   e.preventDefault();
-                  handlePlayerClick(player.id);
+                  handleButtonPress(player.id);
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
