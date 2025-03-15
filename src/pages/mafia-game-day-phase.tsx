@@ -75,6 +75,9 @@ export default function Component() {
   const handleButtonPress = (playerId: number) => {
     if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
 
+    Object.keys(isLongPress.current).forEach(key => {
+      isLongPress.current[Number(key)] = false;
+    });
     isLongPress.current[playerId] = false;
     
     longPressTimers.current[playerId] = setTimeout(() => {
