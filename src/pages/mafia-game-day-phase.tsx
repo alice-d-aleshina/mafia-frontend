@@ -74,13 +74,7 @@ export default function Component() {
   const handleButtonPress = (playerId: number) => {
     if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
 
-    // Сбрасываем все таймеры и состояния длинного нажатия
-    Object.keys(longPressTimers.current).forEach(key => {
-      if (longPressTimers.current[Number(key)]) {
-        clearTimeout(longPressTimers.current[Number(key)]!);
-        longPressTimers.current[Number(key)] = null;
-      }
-    });
+    // Сбрасываем состояние длинного нажатия для всех кнопок
     Object.keys(isLongPress.current).forEach(key => {
       isLongPress.current[Number(key)] = false;
     });
