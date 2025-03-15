@@ -79,21 +79,20 @@ export default function Component() {
     
     longPressTimers.current[playerId] = setTimeout(() => {
       isLongPress.current[playerId] = true;
-      setPlayers(prevPlayers => {
-        const newPlayers = prevPlayers.map(player => {
-          if (player.id === playerId) {
-            const newViolated = (player.violated + 1) % 4;
-            const newFouls = {
-              ...playerFouls,
-              [playerId]: newViolated
-            };
-            setPlayerFouls(newFouls);
-            return { ...player, violated: newViolated };
-          }
-          return player;
-        });
-        return newPlayers;
-      });
+      const newViolated = ((playerFouls[playerId] || 0) + 1) % 4;
+      const newFouls = {
+        ...playerFouls,
+        [playerId]: newViolated
+      };
+      setPlayerFouls(newFouls);
+      
+      setPlayers(prevPlayers => 
+        prevPlayers.map(player => 
+          player.id === playerId 
+            ? { ...player, violated: newViolated }
+            : player
+        )
+      );
     }, 500);
   }
 
@@ -106,21 +105,25 @@ export default function Component() {
     }
 
     if (!isLongPress.current[playerId]) {
-      setPlayers(prevPlayers => {
-        const newPlayers = prevPlayers.map(player => {
-          if (player.id === playerId) {
-            const newClicked = !player.clicked;
-            if (newClicked) {
-              setClickedNumbers(prev => [...prev, playerId]);
-            } else {
-              setClickedNumbers(prev => prev.filter(id => id !== playerId));
-            }
-            return { ...player, clicked: newClicked };
-          }
-          return player;
-        });
-        return newPlayers;
-      });
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        const newClicked = !player.clicked;
+        
+        if (newClicked) {
+          setClickedNumbers(prev => [...prev]);
+          setClickedNumbers(prev => [...prev, playerId]);
+        } else {
+          setClickedNumbers(prev => prev.filter(id => id !== playerId));
+        }
+
+        setPlayers(prevPlayers =>
+          prevPlayers.map(p =>
+            p.id === playerId
+              ? { ...p, clicked: newClicked }
+              : p
+          )
+        );
+      }
     }
     
     isLongPress.current[playerId] = false;
