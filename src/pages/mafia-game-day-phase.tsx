@@ -94,7 +94,7 @@ export default function Component() {
         });
         return newPlayers;
       });
-    }, 500); // Время для определения долгого нажатия
+    }, 500);
   }
 
   const handleButtonRelease = (playerId: number) => {
@@ -106,19 +106,19 @@ export default function Component() {
     }
 
     if (!isLongPress.current[playerId]) {
-      // Обработка короткого нажатия - выставление на голосование
       setPlayers(prevPlayers => {
-        const newPlayers = prevPlayers.map(player => 
-          player.id === playerId ? { ...player, clicked: !player.clicked } : player
-        );
-        
-        const clickedPlayer = newPlayers.find(p => p.id === playerId);
-        if (clickedPlayer?.clicked) {
-          setClickedNumbers(prev => [...prev, playerId]);
-        } else {
-          setClickedNumbers(prev => prev.filter(id => id !== playerId));
-        }
-
+        const newPlayers = prevPlayers.map(player => {
+          if (player.id === playerId) {
+            const newClicked = !player.clicked;
+            if (newClicked) {
+              setClickedNumbers(prev => [...prev, playerId]);
+            } else {
+              setClickedNumbers(prev => prev.filter(id => id !== playerId));
+            }
+            return { ...player, clicked: newClicked };
+          }
+          return player;
+        });
         return newPlayers;
       });
     }
