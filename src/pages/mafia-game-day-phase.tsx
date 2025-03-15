@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
 import { useRoom } from '@/contexts/RoomContext'
@@ -169,6 +169,14 @@ export default function Component() {
 
   const buttonOrder = [5, 6, 4, 7, 3, 8, 2, 9, 1, 10];
 
+  const handlePlayerClick = useCallback((index: number) => {
+    if (clickedNumbers.includes(index)) {
+      setClickedNumbers(clickedNumbers.filter(i => i !== index));
+    } else {
+      setClickedNumbers([...clickedNumbers, index]);
+    }
+  }, [clickedNumbers]);
+
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-900">
       {isFlashing && (
@@ -208,7 +216,7 @@ export default function Component() {
             </Button>
           </div>
         </header>
-        <div className="text-lg font-bold mb-4">Кандаты: {clickedNumbers.join(', ')}</div>
+        <div className="text-lg font-bold mb-4">Кандидаты: {clickedNumbers.join(', ')}</div>
         <div className="grid grid-cols-2 gap-8 mb-8">
           {buttonOrder.map(id => {
             const player = players.find(p => p.id === id)!;
@@ -229,7 +237,7 @@ export default function Component() {
                 onMouseLeave={() => handleButtonRelease(player.id)}
                 onTouchStart={(e) => {
                   e.preventDefault();
-                  handleButtonPress(player.id);
+                  handlePlayerClick(player.id);
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
