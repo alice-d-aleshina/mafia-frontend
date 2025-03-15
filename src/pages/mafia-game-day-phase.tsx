@@ -77,8 +77,7 @@ export default function Component() {
     if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
 
     isLongPress.current[playerId] = false;
-    if (longPressTimers.current[playerId]) clearTimeout(longPressTimers.current[playerId]!)
-
+    
     longPressTimers.current[playerId] = setTimeout(() => {
       isLongPress.current[playerId] = true;
       setPlayers(prevPlayers => {
@@ -100,14 +99,17 @@ export default function Component() {
   }
 
   const handleButtonRelease = (playerId: number) => {
+    if (eliminatedPlayers.includes(playerId) || playerId === shootPlayer) return;
+    
     if (longPressTimers.current[playerId]) {
-      clearTimeout(longPressTimers.current[playerId]!)
+      clearTimeout(longPressTimers.current[playerId]!);
+      longPressTimers.current[playerId] = null;
     }
 
     if (!isLongPress.current[playerId]) {
-      handleButtonClick(playerId)
+      handleButtonClick(playerId);
     }
-
+    
     isLongPress.current[playerId] = false;
   }
 
@@ -206,7 +208,7 @@ export default function Component() {
             </Button>
           </div>
         </header>
-        <div className="text-lg font-bold mb-4">Кандидаты: {clickedNumbers.join(', ')}</div>
+        <div className="text-lg font-bold mb-4">Кандаты: {clickedNumbers.join(', ')}</div>
         <div className="grid grid-cols-2 gap-8 mb-8">
           {buttonOrder.map(id => {
             const player = players.find(p => p.id === id)!;
