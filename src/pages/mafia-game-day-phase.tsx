@@ -80,11 +80,10 @@ export default function Component() {
     longPressTimers.current[playerId] = setTimeout(() => {
       isLongPress.current[playerId] = true;
       const newViolated = ((playerFouls[playerId] || 0) + 1) % 4;
-      const newFouls = {
+      setPlayerFouls({
         ...playerFouls,
         [playerId]: newViolated
-      };
-      setPlayerFouls(newFouls);
+      });
       
       setPlayers(prevPlayers => 
         prevPlayers.map(player => 
@@ -105,25 +104,23 @@ export default function Component() {
     }
 
     if (!isLongPress.current[playerId]) {
-      const player = players.find(p => p.id === playerId);
-      if (player) {
-        const newClicked = !player.clicked;
-        
-        if (newClicked) {
-          setClickedNumbers(prev => [...prev]);
-          setClickedNumbers(prev => [...prev, playerId]);
-        } else {
-          setClickedNumbers(prev => prev.filter(id => id !== playerId));
-        }
-
-        setPlayers(prevPlayers =>
-          prevPlayers.map(p =>
-            p.id === playerId
-              ? { ...p, clicked: newClicked }
-              : p
-          )
-        );
-      }
+      setPlayers(prevPlayers => {
+        const updatedPlayers = prevPlayers.map(p => {
+          if (p.id === playerId) {
+            const newClicked = !p.clicked;
+            setTimeout(() => {
+              if (newClicked) {
+                setClickedNumbers(prev => [...prev, playerId]);
+              } else {
+                setClickedNumbers(prev => prev.filter(id => id !== playerId));
+              }
+            }, 0);
+            return { ...p, clicked: newClicked };
+          }
+          return p;
+        });
+        return updatedPlayers;
+      });
     }
     
     isLongPress.current[playerId] = false;
