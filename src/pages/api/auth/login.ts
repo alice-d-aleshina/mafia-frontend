@@ -13,7 +13,7 @@ export default async function handler(
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+      return res.status(400).json({ error: "Username and password are required" });
     }
 
     // Преобразуем username в формат email
