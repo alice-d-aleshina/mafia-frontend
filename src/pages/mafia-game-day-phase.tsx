@@ -222,9 +222,9 @@ export default function Component() {
                       ? 'bg-gray-500' 
                       : ''
                 }`}
-                onMouseDown={() => handleButtonPress(player.id)}
-                onMouseUp={() => handleButtonRelease(player.id)}
-                onMouseLeave={() => handleButtonRelease(player.id)}
+                // onMouseDown={() => handleButtonPress(player.id)}
+                // onMouseUp={() => handleButtonRelease(player.id)}
+                // onMouseLeave={() => handleButtonRelease(player.id)}
                 onTouchStart={(e) => {
                   e.preventDefault();
                   handleButtonPress(player.id);
