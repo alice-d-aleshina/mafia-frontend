@@ -1,18 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/router';
 
+interface Player {
+  id: number;
+  username: string;
+}
+
 export default function ScoreDistribution() {
   const router = useRouter();
-  const [redPoints, setRedPoints] = useState(0);
-  const [blackPoints, setBlackPoints] = useState(0);
-  const [winner, setWinner] = useState<'red' | 'black' | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [scores, setScores] = useState<{ [key: number]: number }>({});
+
+  useEffect(() => {
+    if (router.query.players) {
+      const playersData: Player[] = JSON.parse(decodeURIComponent(router.query.players as string));
+      setPlayers(playersData);
+    }
+  }, [router.query.players]);
+
+  const handleScoreChange = (id: number, value: number) => {
+    setScores(prevScores => ({
+      ...prevScores,
+      [id]: value,
+    }));
+  };
 
   const handleSubmit = () => {
+    console.log('Распределение баллов:', scores);
     // Здесь можно добавить логику для обработки выставленных баллов
-    console.log('Баллы красных:', redPoints);
-    console.log('Баллы черных:', blackPoints);
-    // Например, отправить данные на сервер или сохранить в локальном хранилище
     router.push('/next-screen'); // Перенаправление на следующий экран
   };
 
@@ -20,30 +36,24 @@ export default function ScoreDistribution() {
     <div className="flex min-h-screen bg-[#1a1625] text-white">
       <div className="w-full max-w-md mx-auto p-4">
         <h1 className="text-lg mb-4">Распределение баллов</h1>
-        <div className="mb-4">
-          <h2 className="text-md">Выберите победителя:</h2>
-          <Button onClick={() => setWinner('red')} className="mr-2">Красные</Button>
-          <Button onClick={() => setWinner('black')}>Черные</Button>
+        <div className="space-y-4">
+          {players.map(player => (
+            <div key={player.id} className="flex items-center justify-between">
+              <span>{player.id}. {player.username}</span>
+              <input
+                type="number"
+                value={scores[player.id] || 0}
+                onChange={(e) => handleScoreChange(player.id, Number(e.target.value))}
+                className="w-16 bg-red-900/90 border-0 placeholder:text-white/60 text-white"
+                placeholder="Баллы"
+              />
+            </div>
+          ))}
         </div>
-        {winner && (
-          <div>
-            <h2 className="text-md mb-2">Баллы для {winner === 'red' ? 'красных' : 'черных'}:</h2>
-            <input
-              type="number"
-              value={winner === 'red' ? redPoints : blackPoints}
-              onChange={(e) => {
-                if (winner === 'red') {
-                  setRedPoints(Number(e.target.value));
-                } else {
-                  setBlackPoints(Number(e.target.value));
-                }
-              }}
-              className="w-full bg-red-900/90 border-0 placeholder:text-white/60 text-white mb-4"
-              placeholder="Введите баллы"
-            />
-          </div>
-        )}
-        <Button onClick={handleSubmit} className="w-full bg-green-600 hover:bg-green-700">
+        <Button
+          onClick={handleSubmit}
+          className="mt-4 w-full bg-green-600 hover:bg-green-700"
+        >
           Подтвердить
         </Button>
       </div>
