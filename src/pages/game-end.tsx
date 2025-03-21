@@ -31,9 +31,9 @@ export default function Component() {
           
           <Button
             className="w-48 h-16 bg-gray-800 hover:bg-gray-700 text-white rounded-lg"
-            onClick={() => router.push('/mafia-create-game')}
+            onClick={() => router.push('/score-distribution')}
           >
-            В главное меню
+            Перейти к распределению баллов
           </Button>
         </div>
       </div>

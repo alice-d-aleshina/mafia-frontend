@@ -2,6 +2,7 @@ import '../app/globals.css';
 import { MenuIcon, UserCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/router'
+import ScoreDistribution from './score-distribution';
 
 export default function Component() {
   const router = useRouter()
