@@ -69,12 +69,6 @@ export default function Component() {
   return (
     <div className="flex min-h-screen bg-[#1a1625] text-white">
       <div className="w-full max-w-md mx-auto p-4">
-        <header className="flex items-center justify-between mb-6">
-          <MenuIcon className="w-6 h-6" />
-          <div className="text-lg">Mafia</div>
-          <UserCircle className="w-6 h-6" />
-        </header>
-
         <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-4">
           <div className="w-full max-w-xs space-y-4">
             {error && (
