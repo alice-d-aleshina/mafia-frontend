@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+import { useRoom } from '@/contexts/RoomContext';
 
 interface Player {
   id: number;
@@ -8,18 +10,26 @@ interface Player {
   place: number;
 }
 
-export default function ScoreDistribution() {
+const ScoreDistribution = () => {
   const router = useRouter();
+ // const { roomId } = router.query; // Извлечение roomId из строки поиска
   const [players, setPlayers] = useState<Player[]>([]);
   const [scores, setScores] = useState<{ [key: number]: number }>({});
+  const {roomId, playerNicknames } = useRoom();
 
   useEffect(() => {
-    if (router.query.players) {
-      const playersData: Player[] = JSON.parse(decodeURIComponent(router.query.players as string));
-      setPlayers(playersData);
+    if (roomId) {
+      console.log("Room ID:", roomId); // Проверка, что roomId не null
+    } else {
+      console.error("Room ID is null or undefined");
     }
-  }, [router.query.players]);
+  }, [roomId]);
 
+  useEffect(() => {
+    console.log("Player Nicknames:", playerNicknames);
+  }, [playerNicknames]);
+
+  
   const handleScoreChange = (id: number, value: number) => {
     setScores(prevScores => ({
       ...prevScores,
@@ -39,20 +49,40 @@ export default function ScoreDistribution() {
       <div className="w-full max-w-md mx-auto p-4">
         <h1 className="text-lg mb-4">Распределение баллов</h1>
         <div className="space-y-4">
-          {players.map(player => (
-            <div key={player.id} className="flex items-center justify-between bg-red-900/90 p-2 rounded-lg">
-              <span>{player.place}. {player.username}</span>
-              <input
-                type="number"
-                min={1}
-                max={5}
-                value={scores[player.id] || 0}
-                onChange={(e) => handleScoreChange(player.id, Number(e.target.value))}
-                className="w-16 bg-red-800 border-0 placeholder:text-white/60 text-white"
-                placeholder="Баллы"
-              />
-            </div>
-          ))}
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Player ID</th>
+                <th className="px-4 py-2">Nickname</th>
+                <th className="px-4 py-2">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playerNicknames && playerNicknames.length > 0 ? (
+                playerNicknames.map(player => (
+                  <tr key={player.id}>
+                    <td className="border px-4 py-2">{player.id}</td>
+                    <td className="border px-4 py-2">{player.nickname}</td>
+                    <td className="border px-4 py-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={5}
+                        value={scores[player.id] !== undefined ? scores[player.id] : ''}
+                        onChange={(e) => handleScoreChange(player.id, Number(e.target.value))}
+                        className="w-16 bg-transparent border-0 placeholder:text-white/60 text-white"
+                        placeholder="Баллы"
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="border px-4 py-2 text-center">Нет игроков</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
         <Button
           onClick={handleSubmit}
@@ -63,4 +93,6 @@ export default function ScoreDistribution() {
       </div>
     </div>
   );
-} 
+};
+
+export default ScoreDistribution; 

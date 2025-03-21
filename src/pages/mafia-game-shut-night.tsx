@@ -27,7 +27,9 @@ export default function NightShootComponent() {
 
       const { isGameOver, mafiaWin } = checkGameEnd(eliminatedPlayers, mafiaPlayers, shootPlayer);
       if (isGameOver) {
-        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}`);
+        const searchParams = new URLSearchParams(window.location.search);
+        const roomId = searchParams.get('roomId');
+        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}?roomId=${roomId}`);
         return;
       }
 

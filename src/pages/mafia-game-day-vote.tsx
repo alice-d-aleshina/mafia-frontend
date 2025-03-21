@@ -182,7 +182,9 @@ export default function VotingScreen() {
 
       const { isGameOver, mafiaWin } = checkGameEnd([...eliminatedPlayers, newEliminatedPlayer], mafiaPlayers, shootPlayer);
       if (isGameOver) {
-        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}`);
+        const searchParams = new URLSearchParams(window.location.search);
+        const roomId = searchParams.get('roomId');
+        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}?roomId=${roomId}`);
         return;
       }
     } else if (newEliminatedPlayers.length > 1) {
@@ -210,7 +212,9 @@ export default function VotingScreen() {
 
       const { isGameOver, mafiaWin } = checkGameEnd([...eliminatedPlayers, ...candidates], mafiaPlayers, shootPlayer);
       if (isGameOver) {
-        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}`);
+        const searchParams = new URLSearchParams(window.location.search);
+        const roomId = searchParams.get('roomId');
+        router.push(`/game-end?winner=${mafiaWin ? 'mafia' : 'citizens'}?roomId=${roomId}`);
         return;
       }
 

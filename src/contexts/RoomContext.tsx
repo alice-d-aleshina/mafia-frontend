@@ -8,6 +8,7 @@ interface GameState {
   shootPlayer: number | null;
   playerFouls: { [key: number]: number };
   mafiaPlayers: number[];
+  playerNicknames: { id: number; nickname: string }[];
 }
 
 interface RoomContextType {
@@ -25,9 +26,11 @@ interface RoomContextType {
   setShootPlayer: (player: number | null) => void;
   playerFouls: { [key: number]: number };
   setPlayerFouls: (fouls: { [key: number]: number }) => void;
-  resetGame: () => void;
+  
   mafiaPlayers: number[];
   setMafiaPlayers: (players: number[]) => void;
+  playerNicknames: { id: number; nickname: string }[];
+  setPlayerNicknames: (nicknames: { id: number; nickname: string }[]) => void;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -42,6 +45,7 @@ const getInitialState = (roomId: string | null): GameState => {
       shootPlayer: null,
       playerFouls: {},
       mafiaPlayers: [],
+      playerNicknames: [],
     };
   }
 
@@ -58,6 +62,7 @@ const getInitialState = (roomId: string | null): GameState => {
     shootPlayer: null,
     playerFouls: {},
     mafiaPlayers: [],
+    playerNicknames: [],
   };
 };
 
@@ -81,6 +86,8 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return getInitialState(null);
   });
+
+  const [playerNicknames, setPlayerNicknamesState] = useState<{ id: number; nickname: string }[]>([]);
 
   // Update roomId when URL changes
   useEffect(() => {
@@ -138,12 +145,16 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setGameState(prev => ({ ...prev, mafiaPlayers: players }));
   };
 
-  const resetGame = () => {
-    if (roomId) {
-      sessionStorage.removeItem(`gameState_${roomId}`);
-      setGameState(getInitialState(null));
-    }
+  const setPlayerNicknames = (nicknames: { id: number; nickname: string }[]) => {
+    setPlayerNicknamesState(nicknames);
   };
+
+  // const resetGame = () => {
+  //   if (roomId) {
+  //     sessionStorage.removeItem(`gameState_${roomId}`);
+  //     setGameState(getInitialState(null));
+  //   }
+  // };
 
   return (
     <RoomContext.Provider value={{
@@ -161,9 +172,10 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setShootPlayer,
       playerFouls: gameState.playerFouls,
       setPlayerFouls,
-      resetGame,
       mafiaPlayers: gameState.mafiaPlayers,
       setMafiaPlayers,
+      playerNicknames,
+      setPlayerNicknames,
     }}>
       {children}
     </RoomContext.Provider>

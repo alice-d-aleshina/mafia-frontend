@@ -141,7 +141,9 @@ export default function Component() {
   }
 
   const handleGameEnd = () => {
-    router.push('/game-end')
+    const searchParams = new URLSearchParams(window.location.search);
+    const roomId = searchParams.get('roomId');
+    router.push('/game-end?roomId=${roomId}')
   }
 
   const toggleTimer = () => {

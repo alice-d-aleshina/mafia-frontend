@@ -40,7 +40,7 @@ interface PlayerResponse {
 
 export default function Component() { 
   const router = useRouter()
-  const { roomId, setRoomId } = useRoom();
+  const { roomId, setRoomId, setPlayerNicknames, setMafiaPlayers } = useRoom();
   
   const [players, setPlayers] = useState<Player[]>( 
     Array.from({ length: 10 }, (_, i) => ({ 
@@ -102,6 +102,17 @@ export default function Component() {
       // Save initial state to session storage
       sessionStorage.setItem(`gameState_${roomCode}`, JSON.stringify(initialGameState));
       
+      // Save player nicknames in the context
+      const activePlayers = players.filter(p => p.nickname); // Get players with nicknames
+      setPlayerNicknames(activePlayers.map(p => ({
+        id: p.id,
+        nickname: p.nickname
+      })));
+      console.log('Saved Player Nicknames:', activePlayers.map(p => ({
+        id: p.id,
+        nickname: p.nickname
+      })));
+
       setRoomId(roomCode);
       router.push(`/mafia-game-first-night?roomId=${roomCode}`);
     } catch (error) {
