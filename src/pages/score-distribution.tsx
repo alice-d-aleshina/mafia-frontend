@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 interface Player {
   id: number;
   username: string;
+  place: number;
 }
 
 export default function ScoreDistribution() {
@@ -29,7 +30,8 @@ export default function ScoreDistribution() {
   const handleSubmit = () => {
     console.log('Распределение баллов:', scores);
     // Здесь можно добавить логику для обработки выставленных баллов
-    router.push('/next-screen'); // Перенаправление на следующий экран
+    // Перенаправление на главное меню
+    router.push('/mafia-menu'); // Перенаправление на экран меню
   };
 
   return (
@@ -38,13 +40,15 @@ export default function ScoreDistribution() {
         <h1 className="text-lg mb-4">Распределение баллов</h1>
         <div className="space-y-4">
           {players.map(player => (
-            <div key={player.id} className="flex items-center justify-between">
-              <span>{player.id}. {player.username}</span>
+            <div key={player.id} className="flex items-center justify-between bg-red-900/90 p-2 rounded-lg">
+              <span>{player.place}. {player.username}</span>
               <input
                 type="number"
+                min={1}
+                max={5}
                 value={scores[player.id] || 0}
                 onChange={(e) => handleScoreChange(player.id, Number(e.target.value))}
-                className="w-16 bg-red-900/90 border-0 placeholder:text-white/60 text-white"
+                className="w-16 bg-red-800 border-0 placeholder:text-white/60 text-white"
                 placeholder="Баллы"
               />
             </div>
